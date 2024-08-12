@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Button, ListGroup, Alert, Spinner } from 'react-bootstrap';
+import '../App.css'
 
 const AdminDashboard = () => {
     const [pendingCaterers, setPendingCaterers] = useState([]);
@@ -10,7 +11,7 @@ const AdminDashboard = () => {
     useEffect(() => {
         const fetchPendingCaterers = async () => {
             try {
-                const response = await axios.post('http://localhost:3010/api/caterers/pending', {}, {
+                const response = await axios.post('http://localhost:3010/api/caterers/pending',{}, {
                     headers: {
                         Authorization: localStorage.getItem('token')
                     }

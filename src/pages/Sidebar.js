@@ -1,25 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,  } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import '../App.css';
+import { useCaterer } from '../contexts/CatererContext';
 import CatererForm from '../components/CatererForm';
 import CatererMenu from '../components/menu/CatererMenu';
 import CatererDetails from '../components/CatererDetails';
 import CatererService from '../components/CatererService';
+import '../App.css';
 
-const Sidebar = ({catererId}) => {
+const Sidebar = () => {
   const location = useLocation();
-  
+  const { catererId,userId } = useCaterer(); // Removed catererId
+
   const [select, setSelect] = useState('');
+
+  console.log('caterer id', catererId);
+  console.log('user id',userId)
 
   useEffect(() => {
     const path = location.pathname.split('/').pop();
     setSelect(path);
-  }, [location]);
+
+    if (!catererId) {
+      console.error('caterer ID is null');
+    }
+  }, [location, catererId]);
 
   const render = () => {
     switch (select) {
       case 'form':
-        return <CatererForm />;
+        return <CatererForm />; // No need to pass userId as prop
       case 'menu':
         return <CatererMenu />;
       case 'service':
@@ -27,7 +36,7 @@ const Sidebar = ({catererId}) => {
       case 'details':
         return <CatererDetails />;
       default:
-        return <div></div>;
+        return <div className='sidebar-text'>Select an option from the sidebar</div>;
     }
   };
 
@@ -54,6 +63,6 @@ const Sidebar = ({catererId}) => {
       </div>
     </div>
   );
-}
+};
 
 export default Sidebar;

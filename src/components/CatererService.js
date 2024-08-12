@@ -34,7 +34,7 @@ const CatererService = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const navigate = useNavigate();
   const location = useLocation();
-  const catererId = location.state?.catererId || sessionStorage.getItem('catererId');
+  const catererId = location.state?.catererId || localStorage.getItem('catererId');
   
   console.log('Caterer ID:', catererId);
 
@@ -106,8 +106,13 @@ const CatererService = () => {
         updatedServices = [...state.services, response.data.service];
       }
 
-      sessionStorage.setItem('services', JSON.stringify(updatedServices));
+      // Store the updated services in local storage
+      localStorage.setItem('services', JSON.stringify(updatedServices));
       dispatch({ type: 'SET_SERVICES', payload: updatedServices });
+
+      // Store caterer ID and service response in session storage
+      sessionStorage.setItem('catererId', catererId);
+      sessionStorage.setItem('serviceResponse', JSON.stringify(response.data));
 
       // Navigate to the caterer details page
       if (catererId) {

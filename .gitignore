@@ -27,4 +27,5 @@ yarn-error.log*
 PORT
 JWT_SECRET
 
-
+/package.json
+/package-lock.json

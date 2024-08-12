@@ -1,6 +1,5 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Routes, Route, Outlet } from 'react-router-dom';
-import { AnimatePresence } from "framer-motion";
+import { Routes, Route } from 'react-router-dom';
 import Home from "./pages/Home";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
@@ -17,7 +16,9 @@ import Header from './components/Header';
 import Success from './pages/Success';
 import axios from 'axios';
 import CatererLogin from './components/CatererLogin';
-import WaitingPage from './pages/WaitingPage';
+import ListMenu from './components/menu/ListMenu';
+import { CatererProvider } from './contexts/CatererContext';
+import './App.css'
 
 function App() {
 
@@ -33,31 +34,36 @@ function App() {
           handleLogin(response.data)
         })();
       }
-    }, [])
+    }, []);
 
   return (
-    <AnimatePresence>
-      <div className='headerContainer'>
+    <>
         <Header />
-        <main className='pt-28' />
-        <Outlet />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="register" element={<Register />} />
-          <Route path="login" element={<Login />} />
-          <Route path="menu" element={<Menu />} />
-          <Route path="contact" element={<Contact />} />
-          <Route path="about" element={<About />} />
-          <Route path="event" element={<Event />} />
-          <Route path="account" element={<Account />} />
-          <Route path="admin" element={<AdminDashboard />} />
-          <Route path="success" element={<Success />} />
-          <Route path="caterer/*" element={<CatererDashboard />} />
-          <Route path="login/caterer/:userId" element={<CatererLogin />} />
-          {/* <Route path="waiting" element={<WaitingPage />} /> */}
-        </Routes>
-      </div>
-    </AnimatePresence>
+        <main className='pt-28'>
+    
+        <CatererProvider>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="register" element={<Register />} />
+            <Route path="login" element={<Login />} />
+            <Route path="menu" element={<Menu />} />
+            <Route path="contact" element={<Contact />} />
+            <Route path="about" element={<About />} />
+            <Route path="event" element={<Event />} />
+            <Route path="account" element={<Account />} />
+            <Route path="admin" element={<AdminDashboard />} />
+            <Route path="success" element={<Success />} />
+            <Route path="caterer/*" element={<CatererDashboard />} />
+            <Route path="caterer/login/:userId" element={<CatererLogin />} />
+            {/* <Route path="login/caterer/:userId" element={<CatererLogin />} /> */}
+            <Route path='/caterer/list-menu' element={<ListMenu/>}/>
+            {/* <Route path="waiting" element={<WaitingPage />} /> */}
+          </Routes>
+          </CatererProvider>
+        
+         
+        </main>
+    </>
   );
 }
 

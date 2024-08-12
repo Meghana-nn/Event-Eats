@@ -2,85 +2,81 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Container, Row, Col, Table, Button, Modal, ModalHeader, ModalBody, ModalFooter, Form, FormGroup, Label, Input } from 'reactstrap';
 import axios from 'axios';
+import { useCaterer } from '../contexts/CatererContext'; // Import useCaterer hook
 import '../components/Caterer.css';
 
 function CatererDetails() {
   const location = useLocation();
   const { state } = location;
 
-  const [caterer, setCaterer] = useState(state?.caterer || JSON.parse(localStorage.getItem('caterer')));
-  const [service, setService] = useState(state?.service || JSON.parse(localStorage.getItem('service')));
+  const { catererData, setCatererData, catererId, setCatererId, resetCaterer } = useCaterer(); // Use context hook
+
   const [modal, setModal] = useState(false);
-  const [editCaterer, setEditCaterer] = useState(caterer);
-  const [editService, setEditService] = useState(service);
+  const [editCaterer, setEditCaterer] = useState(catererData || {});
+  const [editService, setEditService] = useState(catererData?.service || {});
   const [editSection, setEditSection] = useState('caterer');
 
   useEffect(() => {
-    const userId = localStorage.getItem('userId');
-    if (!caterer && userId) {
-      axios
-        .get(`/api/caterers/byUserId/${userId}`)
-        .then(response => {
-          const fetchedCaterer = response.data.caterer;
-          const fetchedService = response.data.service; // Assuming service data is also available in the response
-
+    if (!catererData && catererId) {
+      const fetchCatererData = async () => {
+        try {
+          const response = await axios.get(`http://localhost:3010/api/caterers/${catererId}`);
+          const fetchedCaterer = response.data;
           if (fetchedCaterer) {
-            setCaterer(fetchedCaterer);
-            localStorage.setItem('caterer', JSON.stringify(fetchedCaterer));
+            setCatererData(fetchedCaterer);
           }
-
-          if (fetchedService) {
-            setService(fetchedService);
-            localStorage.setItem('service', JSON.stringify(fetchedService));
-          }
-        })
-        .catch(error => {
+        } catch (error) {
           console.error('Error fetching caterer data:', error);
-        });
+        }
+      };
+      fetchCatererData();
     }
-  }, [caterer]);
+  }, [catererId, catererData, setCatererData]);
 
   useEffect(() => {
     if (state) {
-      localStorage.setItem('caterer', JSON.stringify(state.caterer));
-      localStorage.setItem('service', JSON.stringify(state.service));
-      setCaterer(state.caterer);
-      setService(state.service);
+      setCatererData(state.caterer);
+      setEditService(state.caterer?.service || {});
     }
-  }, [state]);
+  }, [state, setCatererData]);
 
   const toggleModal = () => setModal(!modal);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setEditCaterer({ ...editCaterer, [name]: value });
+    setEditCaterer(prev => ({ ...prev, [name]: value }));
   };
 
   const handleServiceChange = (e) => {
     const { name, value } = e.target;
-    setEditService({ ...editService, [name]: value });
+    setEditService(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    if (editSection === 'caterer') {
-      setCaterer(editCaterer);
-      localStorage.setItem('caterer', JSON.stringify(editCaterer));
-    } else {
-      setService(editService);
-      localStorage.setItem('service', JSON.stringify(editService));
+  const handleSave = async () => {
+    try {
+      if (editSection === 'caterer') {
+        await axios.put(`/api/caterers/${editCaterer._id}`, editCaterer);
+        setCatererData(editCaterer);
+      } else {
+        await axios.put(`/api/services/${editService._id}`, editService);
+        setEditService(editService);
+        setCatererData(prev => ({ ...prev, service: editService }));
+      }
+      toggleModal();
+    } catch (error) {
+      console.error('Error saving data:', error);
     }
-    toggleModal();
   };
 
   const handleEditCaterer = () => {
     setEditSection('caterer');
-    setEditCaterer(caterer);
+    setEditCaterer(catererData || {});
     toggleModal();
   };
 
   const handleEditService = () => {
     setEditSection('service');
-    setEditService(service);
+    setEditService(catererData?.service || {});
     toggleModal();
   };
 
@@ -89,36 +85,36 @@ function CatererDetails() {
       <Row>
         <Col md="6">
           <h6>Caterer Details</h6>
-          {caterer ? (
+          {catererData ? (
             <Table striped dark>
               <tbody>
                 <tr>
                   <th>Name</th>
-                  <td>{caterer.name || 'No Name Available'}</td>
+                  <td>{catererData.name || 'No Name Available'}</td>
                 </tr>
                 <tr>
                   <th>Location</th>
-                  <td>{caterer.location || 'No Location Available'}</td>
+                  <td>{catererData.location || 'No Location Available'}</td>
                 </tr>
                 <tr>
                   <th>Mobile</th>
-                  <td>{caterer.mobile || 'No Mobile Available'}</td>
+                  <td>{catererData.mobile || 'No Mobile Available'}</td>
                 </tr>
                 <tr>
                   <th>Categories</th>
-                  <td>{caterer.categories ? caterer.categories.join(', ') : 'No Categories Available'}</td>
+                  <td>{catererData.categories ? catererData.categories.join(', ') : 'No Categories Available'}</td>
                 </tr>
                 <tr>
                   <th>Cuisines</th>
-                  <td>{caterer.cuisines ? caterer.cuisines.join(', ') : 'No Cuisines Available'}</td>
+                  <td>{catererData.cuisines ? catererData.cuisines.join(', ') : 'No Cuisines Available'}</td>
                 </tr>
                 <tr>
                   <th>Vegetarian</th>
-                  <td>{caterer.isVeg ? 'Yes' : 'No'}</td>
+                  <td>{catererData.isVeg ? 'Yes' : 'No'}</td>
                 </tr>
                 <tr>
                   <th>Verified</th>
-                  <td>{caterer.isVerified ? 'Yes' : 'No'}</td>
+                  <td>{catererData.isVerified ? 'Yes' : 'No'}</td>
                 </tr>
                 <tr>
                   <td colSpan="2">
@@ -133,20 +129,20 @@ function CatererDetails() {
         </Col>
         <Col md="6">
           <h6>Service Details</h6>
-          {service ? (
+          {editService ? (
             <Table striped dark>
               <tbody>
                 <tr>
                   <th>Service Name</th>
-                  <td>{service.serviceName || 'No Name Available'}</td>
+                  <td>{editService.serviceName || 'No Name Available'}</td>
                 </tr>
                 <tr>
                   <th>Description</th>
-                  <td>{service.description || 'No Description Available'}</td>
+                  <td>{editService.description || 'No Description Available'}</td>
                 </tr>
                 <tr>
                   <th>Price</th>
-                  <td>{service.price || 'No Price Available'}</td>
+                  <td>{editService.price || 'No Price Available'}</td>
                 </tr>
                 <tr>
                   <td colSpan="2">
@@ -169,31 +165,73 @@ function CatererDetails() {
                 <h4>Caterer Details</h4>
                 <FormGroup>
                   <Label for="name">Name</Label>
-                  <Input type="text" name="name" id="name" value={editCaterer.name || ''} onChange={handleInputChange} />
+                  <Input
+                    type="text"
+                    name="name"
+                    id="name"
+                    value={editCaterer.name || ''}
+                    onChange={handleInputChange}
+                  />
                 </FormGroup>
                 <FormGroup>
                   <Label for="location">Location</Label>
-                  <Input type="text" name="location" id="location" value={editCaterer.location || ''} onChange={handleInputChange} />
+                  <Input
+                    type="text"
+                    name="location"
+                    id="location"
+                    value={editCaterer.location || ''}
+                    onChange={handleInputChange}
+                  />
                 </FormGroup>
                 <FormGroup>
                   <Label for="mobile">Mobile</Label>
-                  <Input type="text" name="mobile" id="mobile" value={editCaterer.mobile || ''} onChange={handleInputChange} />
+                  <Input
+                    type="text"
+                    name="mobile"
+                    id="mobile"
+                    value={editCaterer.mobile || ''}
+                    onChange={handleInputChange}
+                  />
                 </FormGroup>
                 <FormGroup>
                   <Label for="categories">Categories</Label>
-                  <Input type="text" name="categories" id="categories" value={editCaterer.categories ? editCaterer.categories.join(', ') : ''} onChange={handleInputChange} />
+                  <Input
+                    type="text"
+                    name="categories"
+                    id="categories"
+                    value={editCaterer.categories ? editCaterer.categories.join(', ') : ''}
+                    onChange={handleInputChange}
+                  />
                 </FormGroup>
                 <FormGroup>
                   <Label for="cuisines">Cuisines</Label>
-                  <Input type="text" name="cuisines" id="cuisines" value={editCaterer.cuisines ? editCaterer.cuisines.join(', ') : ''} onChange={handleInputChange} />
+                  <Input
+                    type="text"
+                    name="cuisines"
+                    id="cuisines"
+                    value={editCaterer.cuisines ? editCaterer.cuisines.join(', ') : ''}
+                    onChange={handleInputChange}
+                  />
                 </FormGroup>
                 <FormGroup>
                   <Label for="isVeg">Vegetarian</Label>
-                  <Input type="checkbox" name="isVeg" id="isVeg" checked={editCaterer.isVeg || false} onChange={e => setEditCaterer({ ...editCaterer, isVeg: e.target.checked })} />
+                  <Input
+                    type="checkbox"
+                    name="isVeg"
+                    id="isVeg"
+                    checked={editCaterer.isVeg || false}
+                    onChange={e => setEditCaterer(prev => ({ ...prev, isVeg: e.target.checked }))}
+                  />
                 </FormGroup>
                 <FormGroup>
                   <Label for="isVerified">Verified</Label>
-                  <Input type="checkbox" name="isVerified" id="isVerified" checked={editCaterer.isVerified || false} onChange={e => setEditCaterer({ ...editCaterer, isVerified: e.target.checked })} />
+                  <Input
+                    type="checkbox"
+                    name="isVerified"
+                    id="isVerified"
+                    checked={editCaterer.isVerified || false}
+                    onChange={e => setEditCaterer(prev => ({ ...prev, isVerified: e.target.checked }))}
+                  />
                 </FormGroup>
               </>
             ) : (
@@ -201,15 +239,33 @@ function CatererDetails() {
                 <h4>Service Details</h4>
                 <FormGroup>
                   <Label for="serviceName">Service Name</Label>
-                  <Input type="text" name="serviceName" id="serviceName" value={editService.serviceName || ''} onChange={handleServiceChange} />
+                  <Input
+                    type="text"
+                    name="serviceName"
+                    id="serviceName"
+                    value={editService.serviceName || ''}
+                    onChange={handleServiceChange}
+                  />
                 </FormGroup>
                 <FormGroup>
                   <Label for="description">Description</Label>
-                  <Input type="text" name="description" id="description" value={editService.description || ''} onChange={handleServiceChange} />
+                  <Input
+                    type="textarea"
+                    name="description"
+                    id="description"
+                    value={editService.description || ''}
+                    onChange={handleServiceChange}
+                  />
                 </FormGroup>
                 <FormGroup>
                   <Label for="price">Price</Label>
-                  <Input type="text" name="price" id="price" value={editService.price || ''} onChange={handleServiceChange} />
+                  <Input
+                    type="text"
+                    name="price"
+                    id="price"
+                    value={editService.price || ''}
+                    onChange={handleServiceChange}
+                  />
                 </FormGroup>
               </>
             )}

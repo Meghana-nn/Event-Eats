@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import _ from 'lodash';
 import { useAuth } from '../contexts/Auth';
 import validator from 'validator';
-import './Login.css'
-import backgroundImage from '../assets/login-backgroun-1.jpg'
+import { Form, FormGroup, Label, Input, Button, Alert } from 'reactstrap';
+import './Login.css';
 
 export default function Login() {
     const navigate = useNavigate();
@@ -15,7 +15,6 @@ export default function Login() {
         password: '',
         clientErrors: {},
         serverError: null
-
     });
 
     const runValidations = () => {
@@ -44,8 +43,6 @@ export default function Login() {
         if (isValid) {
             try {
                 const response = await axios.post('http://localhost:3010/api/users/login', formData);
-                console.log("Response from login endpoint:", response); // Logging the response
-
                 const token = response.data.token;
                 localStorage.setItem('token', token);
                 console.log(token)
@@ -55,24 +52,26 @@ export default function Login() {
                         Authorization: localStorage.getItem('token')
                     }
                 });
-                console.log("Response from account endpoint:", userResponse); // Logging the user data
                 handleLogin(userResponse.data);
 
-                
+                console.log(userResponse)
+
                 const userRole = userResponse.data.role;
                 const userId = userResponse.data._id;
                 console.log(userRole)
-                
+                console.log('user id',userId)
+
                 if (userRole === 'admin') {
                     navigate('/admin');
                 } else if (userRole === 'caterer') {
                     sessionStorage.setItem('userId', userId);
-                    navigate(`/login/caterer/${userId}`);
+                    navigate(`/caterer/login/${userId}`);
                 } else {
                     navigate('/');
                 }
             } catch (err) {
                 console.error("Error during login", err);
+                setForm({ ...form, serverError: 'Login failed. Please try again.' });
             }
         }
     };
@@ -83,34 +82,49 @@ export default function Login() {
     };
 
     return (
-        <div className="login-page">
-            {/* <div className="w-screen h-screen relative overflow-hidden flex">
-                <img src={backgroundImage} alt='background'/>
-                </div> */}
-            {/* <div className='flex flex-col items-left bg-slate-200 w-[20%] md:w-588 h-full z-10 background-blur-md'>
-            </div> */}
-            
+        
+           <div className="login-page">
+            <div className="background-wrapper">
             <div className="login-container">
-                <div className="login-form">
+                     <div className="login-form">
                     <h2>Login</h2>
-                    <form onSubmit={handleSubmit}>
-                        <div className="login-form-group">
-                            <label htmlFor="email" className="form-label">Enter email</label>
-                            <input type="text" value={form.email} onChange={handleChange} name="email" id="email" className={`form-control ${form.clientErrors.email ? 'is-invalid' : ''}`} />
+                    <Form onSubmit={handleSubmit}>
+                        {form.serverError && <Alert color="danger">{form.serverError}</Alert>}
+                        <FormGroup>
+                            <Label for="email">Email:</Label>
+                            <Input
+                                type="email"
+                                name="email"
+                                id="email"
+                                placeholder='Enter valid email'
+                                value={form.email}
+                                onChange={handleChange}
+                                invalid={!!form.clientErrors.email}
+                            />
                             {form.clientErrors.email && <div className="invalid-feedback">{form.clientErrors.email}</div>}
-                        </div>
-                        <div className="login-form-group">
-                            <label htmlFor="password" className="form-label">Enter password</label>
-                            <input type="password" value={form.password} onChange={handleChange} name="password" id="password" className={`form-control ${form.clientErrors.password ? 'is-invalid' : ''}`} />
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for="password">Password:</Label>
+                            <Input
+                                type="password"
+                                name="password"
+                                id="password"
+                                placeholder='Enter password'
+                                value={form.password}
+                                onChange={handleChange}
+                                invalid={!!form.clientErrors.password}
+                            />
                             {form.clientErrors.password && <div className="invalid-feedback">{form.clientErrors.password}</div>}
-                        </div>
-                        <button type="submit" className="btn btn-primary">Login</button>
-                    </form>
+                        </FormGroup>
+                        <Button color="primary" type="submit">Login</Button>
+                    </Form>
                     <div className="login-form-group">
                         <Link to="/register">Create an account</Link>
                     </div>
                 </div>
             </div>
         </div>
+        </div>
+       
     );
 }
