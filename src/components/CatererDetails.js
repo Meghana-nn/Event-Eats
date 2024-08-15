@@ -1,283 +1,337 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Container, Row, Col, Table, Button, Modal, ModalHeader, ModalBody, ModalFooter, Form, FormGroup, Label, Input } from 'reactstrap';
+import React, { useEffect, useReducer, useState } from 'react';
 import axios from 'axios';
-import { useCaterer } from '../contexts/CatererContext'; // Import useCaterer hook
-import '../components/Caterer.css';
+import { useCaterer } from '../contexts/CatererContext'; // Adjust the path as necessary
+import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Form, FormGroup, Label, Input, Table } from 'reactstrap';
+import '../components/service.css';
 
-function CatererDetails() {
-  const location = useLocation();
-  const { state } = location;
+const initialState = {
+  caterer: null,
+  services: [],
+  error: null,
+};
 
-  const { catererData, setCatererData, catererId, setCatererId, resetCaterer } = useCaterer(); // Use context hook
+const reducer = (state, action) => {
+  switch (action.type) {
+    case 'SET_CATERER':
+      return { ...state, caterer: action.payload };
+    case 'SET_SERVICES':
+      return { ...state, services: action.payload };
+    case 'SET_ERROR':
+      return { ...state, error: action.payload };
+    default:
+      throw new Error(`Unhandled action type: ${action.type}`);
+  }
+};
 
-  const [modal, setModal] = useState(false);
-  const [editCaterer, setEditCaterer] = useState(catererData || {});
-  const [editService, setEditService] = useState(catererData?.service || {});
-  const [editSection, setEditSection] = useState('caterer');
+const CatererDetails = () => {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { catererId, resetCaterer } = useCaterer(); // Use CatererContext
+  const [catererModal, setCatererModal] = useState(false);
+  const [serviceModal, setServiceModal] = useState(false);
+  const [editCaterer, setEditCaterer] = useState(null);
+  const [editService, setEditService] = useState(null);
 
   useEffect(() => {
-    if (!catererData && catererId) {
-      const fetchCatererData = async () => {
-        try {
-          const response = await axios.get(`http://localhost:3010/api/caterers/${catererId}`);
-          const fetchedCaterer = response.data;
-          if (fetchedCaterer) {
-            setCatererData(fetchedCaterer);
-          }
-        } catch (error) {
-          console.error('Error fetching caterer data:', error);
-        }
-      };
-      fetchCatererData();
+    if (catererId) {
+      fetchCatererDetails(catererId);
     }
-  }, [catererId, catererData, setCatererData]);
+  }, [catererId]);
 
-  useEffect(() => {
-    if (state) {
-      setCatererData(state.caterer);
-      setEditService(state.caterer?.service || {});
+  const fetchCatererDetails = async (catererId) => {
+    try {
+      const response = await axios.get(`http://localhost:3010/api/caterers/${catererId}`);
+      const caterer = response.data;
+      dispatch({ type: 'SET_CATERER', payload: caterer });
+
+
+      const token = localStorage.getItem('token');
+      const servicesResponse = await axios.get(`http://localhost:3010/api/services/caterer/${catererId}`,{
+        headers: { Authorization: token },
+    });
+      
+      const services = servicesResponse.data;
+      console.log(services,':service')
+      dispatch({ type: 'SET_SERVICES', payload: services });
+      localStorage.setItem('services', JSON.stringify(services));
+
+    } catch (err) {
+      console.error('Error fetching caterer details:', err.message);
+      dispatch({ type: 'SET_ERROR', payload: err.message });
     }
-  }, [state, setCatererData]);
+  };
 
-  const toggleModal = () => setModal(!modal);
+  const toggleCatererModal = () => setCatererModal(!catererModal);
+  const toggleServiceModal = () => setServiceModal(!serviceModal);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditCaterer(prev => ({ ...prev, [name]: value }));
+  const handleEditCaterer = () => {
+    setEditCaterer(state.caterer);
+    toggleCatererModal();
+  };
+
+  const handleCatererChange = (e) => {
+    setEditCaterer({ ...editCaterer, [e.target.name]: e.target.value });
+  };
+
+  const handleSaveCaterer = async () => {
+    try {
+      const response = await axios.put(`http://localhost:3010/api/caterers/${editCaterer._id}`, editCaterer);
+      console.log('Updated caterer:', response.data);
+      fetchCatererDetails(catererId);
+      toggleCatererModal();
+    } catch (err) {
+      console.error('Error updating caterer:', err.message);
+    }
+  };
+
+  const handleDeleteCaterer = async () => {
+    try {
+      await axios.delete(`http://localhost:3010/api/caterers/${state.caterer._id}`);
+      console.log('Caterer deleted:', state.caterer._id);
+      resetCaterer(); // Reset the caterer context after deletion
+    } catch (err) {
+      console.error('Error deleting caterer:', err.message);
+    }
+  };
+
+  const handleEditService = (service) => {
+    setEditService(service);
+    toggleServiceModal();
   };
 
   const handleServiceChange = (e) => {
-    const { name, value } = e.target;
-    setEditService(prev => ({ ...prev, [name]: value }));
+    setEditService({ ...editService, [e.target.name]: e.target.value });
   };
 
-  const handleSave = async () => {
+  const handleSaveService = async () => {
     try {
-      if (editSection === 'caterer') {
-        await axios.put(`/api/caterers/${editCaterer._id}`, editCaterer);
-        setCatererData(editCaterer);
-      } else {
-        await axios.put(`/api/services/${editService._id}`, editService);
-        setEditService(editService);
-        setCatererData(prev => ({ ...prev, service: editService }));
-      }
-      toggleModal();
-    } catch (error) {
-      console.error('Error saving data:', error);
+      const response = await axios.put(`http://localhost:3010/api/services/${editService._id}`, editService);
+      console.log('Updated service:', response.data);
+      fetchCatererDetails(catererId);
+      toggleServiceModal();
+    } catch (err) {
+      console.error('Error updating service:', err.message);
     }
   };
 
-  const handleEditCaterer = () => {
-    setEditSection('caterer');
-    setEditCaterer(catererData || {});
-    toggleModal();
+  const handleDeleteService = async (serviceId) => {
+    try {
+      await axios.delete(`http://localhost:3010/api/services/${serviceId}`);
+      console.log('Service deleted:', serviceId);
+      fetchCatererDetails(catererId);
+    } catch (err) {
+      console.error('Error deleting service:', err.message);
+    }
   };
 
-  const handleEditService = () => {
-    setEditSection('service');
-    setEditService(catererData?.service || {});
-    toggleModal();
-  };
+  if (state.error) {
+    return <div>Error: {state.error}</div>;
+  }
+
+  if (!state.caterer) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <Container className="details-container">
-      <Row>
-        <Col md="6">
-          <h6>Caterer Details</h6>
-          {catererData ? (
-            <Table striped dark>
-              <tbody>
-                <tr>
-                  <th>Name</th>
-                  <td>{catererData.name || 'No Name Available'}</td>
-                </tr>
-                <tr>
-                  <th>Location</th>
-                  <td>{catererData.location || 'No Location Available'}</td>
-                </tr>
-                <tr>
-                  <th>Mobile</th>
-                  <td>{catererData.mobile || 'No Mobile Available'}</td>
-                </tr>
-                <tr>
-                  <th>Categories</th>
-                  <td>{catererData.categories ? catererData.categories.join(', ') : 'No Categories Available'}</td>
-                </tr>
-                <tr>
-                  <th>Cuisines</th>
-                  <td>{catererData.cuisines ? catererData.cuisines.join(', ') : 'No Cuisines Available'}</td>
-                </tr>
-                <tr>
-                  <th>Vegetarian</th>
-                  <td>{catererData.isVeg ? 'Yes' : 'No'}</td>
-                </tr>
-                <tr>
-                  <th>Verified</th>
-                  <td>{catererData.isVerified ? 'Yes' : 'No'}</td>
-                </tr>
-                <tr>
-                  <td colSpan="2">
-                    <Button color="primary" onClick={handleEditCaterer}>Edit Caterer</Button>
-                  </td>
-                </tr>
-              </tbody>
-            </Table>
-          ) : (
-            <p>No caterer details available.</p>
-          )}
-        </Col>
-        <Col md="6">
-          <h6>Service Details</h6>
-          {editService ? (
-            <Table striped dark>
-              <tbody>
-                <tr>
-                  <th>Service Name</th>
-                  <td>{editService.serviceName || 'No Name Available'}</td>
-                </tr>
-                <tr>
-                  <th>Description</th>
-                  <td>{editService.description || 'No Description Available'}</td>
-                </tr>
-                <tr>
-                  <th>Price</th>
-                  <td>{editService.price || 'No Price Available'}</td>
-                </tr>
-                <tr>
-                  <td colSpan="2">
-                    <Button color="primary" onClick={handleEditService}>Edit Service</Button>
-                  </td>
-                </tr>
-              </tbody>
-            </Table>
-          ) : (
-            <p>No service details available for this caterer.</p>
-          )}
-        </Col>
-      </Row>
-      <Modal isOpen={modal} toggle={toggleModal}>
-        <ModalHeader toggle={toggleModal}>Edit {editSection === 'caterer' ? 'Caterer' : 'Service'} Details</ModalHeader>
+    <div className="details-container">
+      <h6>Caterer Details</h6>
+      <Table striped>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Location</th>
+            <th>Mobile</th>
+            <th>Categories</th>
+            <th>Verified</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{state.caterer.name}</td>
+            <td>{state.caterer.description}</td>
+            <td>{state.caterer.location}</td>
+            <td>{state.caterer.mobile}</td>
+            <td>{state.caterer.categories}</td>
+            <td>{state.caterer.isVerified ? 'Yes' : 'No'}</td>
+            <td style={{ whiteSpace: 'nowrap' }}>
+              <Button color="primary" onClick={handleEditCaterer} style={{ marginRight: '5px' }}>
+                Edit
+              </Button>
+              <Button color="danger" onClick={handleDeleteCaterer}>
+                Delete
+              </Button>
+            </td>
+          </tr>
+        </tbody>
+      </Table>
+
+      <h6>Services</h6>
+      <Table striped>
+        <thead>
+          <tr>
+            <th>Service Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Duration</th>
+            <th>Vegetarian</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {state.services.map((service) => (
+            <tr key={service._id}>
+              <td>{service.serviceName}</td>
+              <td>{service.description}</td>
+              <td>{service.price}</td>
+              <td>{service.duration}</td>
+              <td>{service.vegetarian ? 'Yes' : 'No'}</td>
+              <td style={{ whiteSpace: 'nowrap' }}>
+                <Button color="primary" onClick={() => handleEditService(service)} style={{ marginRight: '5px' }}>
+                  Edit
+                </Button>
+                <Button color="danger" onClick={() => handleDeleteService(service._id)}>
+                  Delete
+                </Button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+
+      {/* Caterer Edit Modal */}
+      <Modal isOpen={catererModal} toggle={toggleCatererModal}>
+        <ModalHeader toggle={toggleCatererModal}>Edit Caterer</ModalHeader>
         <ModalBody>
           <Form>
-            {editSection === 'caterer' ? (
-              <>
-                <h4>Caterer Details</h4>
-                <FormGroup>
-                  <Label for="name">Name</Label>
-                  <Input
-                    type="text"
-                    name="name"
-                    id="name"
-                    value={editCaterer.name || ''}
-                    onChange={handleInputChange}
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <Label for="location">Location</Label>
-                  <Input
-                    type="text"
-                    name="location"
-                    id="location"
-                    value={editCaterer.location || ''}
-                    onChange={handleInputChange}
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <Label for="mobile">Mobile</Label>
-                  <Input
-                    type="text"
-                    name="mobile"
-                    id="mobile"
-                    value={editCaterer.mobile || ''}
-                    onChange={handleInputChange}
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <Label for="categories">Categories</Label>
-                  <Input
-                    type="text"
-                    name="categories"
-                    id="categories"
-                    value={editCaterer.categories ? editCaterer.categories.join(', ') : ''}
-                    onChange={handleInputChange}
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <Label for="cuisines">Cuisines</Label>
-                  <Input
-                    type="text"
-                    name="cuisines"
-                    id="cuisines"
-                    value={editCaterer.cuisines ? editCaterer.cuisines.join(', ') : ''}
-                    onChange={handleInputChange}
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <Label for="isVeg">Vegetarian</Label>
-                  <Input
-                    type="checkbox"
-                    name="isVeg"
-                    id="isVeg"
-                    checked={editCaterer.isVeg || false}
-                    onChange={e => setEditCaterer(prev => ({ ...prev, isVeg: e.target.checked }))}
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <Label for="isVerified">Verified</Label>
-                  <Input
-                    type="checkbox"
-                    name="isVerified"
-                    id="isVerified"
-                    checked={editCaterer.isVerified || false}
-                    onChange={e => setEditCaterer(prev => ({ ...prev, isVerified: e.target.checked }))}
-                  />
-                </FormGroup>
-              </>
-            ) : (
-              <>
-                <h4>Service Details</h4>
-                <FormGroup>
-                  <Label for="serviceName">Service Name</Label>
-                  <Input
-                    type="text"
-                    name="serviceName"
-                    id="serviceName"
-                    value={editService.serviceName || ''}
-                    onChange={handleServiceChange}
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <Label for="description">Description</Label>
-                  <Input
-                    type="textarea"
-                    name="description"
-                    id="description"
-                    value={editService.description || ''}
-                    onChange={handleServiceChange}
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <Label for="price">Price</Label>
-                  <Input
-                    type="text"
-                    name="price"
-                    id="price"
-                    value={editService.price || ''}
-                    onChange={handleServiceChange}
-                  />
-                </FormGroup>
-              </>
-            )}
+            <FormGroup>
+              <Label for="name">Caterer Name</Label>
+              <Input type="text" name="name" id="name" value={editCaterer?.name || ''} onChange={handleCatererChange} />
+            </FormGroup>
+            <FormGroup>
+              <Label for="description">Description</Label>
+              <Input
+                type="text"
+                name="description"
+                id="description"
+                value={editCaterer?.description || ''}
+                onChange={handleCatererChange}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label for="location">Location</Label>
+              <Input type="text" name="location" id="location" value={editCaterer?.location || ''} onChange={handleCatererChange} />
+            </FormGroup>
+            <FormGroup>
+              <Label for="mobile">Mobile</Label>
+              <Input type="text" name="mobile" id="mobile" value={editCaterer?.mobile || ''} onChange={handleCatererChange} />
+            </FormGroup>
+            <FormGroup>
+              <Label for="categories">Categories</Label>
+              <Input
+                type="text"
+                name="categories"
+                id="categories"
+                value={editCaterer?.categories || ''}
+                onChange={handleCatererChange}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label for="isVerified">Verified</Label>
+              <Input
+                type="select"
+                name="isVerified"
+                id="isVerified"
+                value={editCaterer?.isVerified || ''}
+                onChange={handleCatererChange}
+              >
+                <option value={true}>Yes</option>
+                <option value={false}>No</option>
+              </Input>
+            </FormGroup>
           </Form>
         </ModalBody>
         <ModalFooter>
-          <Button color="primary" onClick={handleSave}>Save</Button>{' '}
-          <Button color="secondary" onClick={toggleModal}>Cancel</Button>
+          <Button color="primary" onClick={handleSaveCaterer}>
+            Save
+          </Button>{' '}
+          <Button color="secondary" onClick={toggleCatererModal}>
+            Cancel
+          </Button>
         </ModalFooter>
       </Modal>
-    </Container>
+
+      {/* Service Edit Modal */}
+      <Modal isOpen={serviceModal} toggle={toggleServiceModal}>
+        <ModalHeader toggle={toggleServiceModal}>Edit Service</ModalHeader>
+        <ModalBody>
+          <Form>
+            <FormGroup>
+              <Label for="serviceName">Service Name</Label>
+              <Input
+                type="text"
+                name="serviceName"
+                id="serviceName"
+                value={editService?.serviceName || ''}
+                onChange={handleServiceChange}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label for="description">Description</Label>
+              <Input
+                type="text"
+                name="description"
+                id="description"
+                value={editService?.description || ''}
+                onChange={handleServiceChange}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label for="price">Price</Label>
+              <Input
+                type="number"
+                name="price"
+                id="price"
+                value={editService?.price || ''}
+                onChange={handleServiceChange}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label for="duration">Duration</Label>
+              <Input
+                type="text"
+                name="duration"
+                id="duration"
+                value={editService?.duration || ''}
+                onChange={handleServiceChange}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label for="vegetarian">Vegetarian</Label>
+              <Input
+                type="select"
+                name="vegetarian"
+                id="vegetarian"
+                value={editService?.vegetarian || ''}
+                onChange={handleServiceChange}
+              >
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </Input>
+            </FormGroup>
+          </Form>
+        </ModalBody>
+        <ModalFooter>
+          <Button color="primary" onClick={handleSaveService}>
+            Save
+          </Button>{' '}
+          <Button color="secondary" onClick={toggleServiceModal}>
+            Cancel
+          </Button>
+        </ModalFooter>
+      </Modal>
+    </div>
   );
-}
+};
 
 export default CatererDetails;

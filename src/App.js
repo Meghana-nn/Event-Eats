@@ -56,7 +56,7 @@ function App() {
             <Route path="caterer/*" element={<CatererDashboard />} />
             <Route path="caterer/login/:userId" element={<CatererLogin />} />
             {/* <Route path="login/caterer/:userId" element={<CatererLogin />} /> */}
-            <Route path='/caterer/list-menu' element={<ListMenu/>}/>
+            <Route path='/caterer/list/menu' element={<ListMenu/>}/>
             {/* <Route path="waiting" element={<WaitingPage />} /> */}
           </Routes>
           </CatererProvider>

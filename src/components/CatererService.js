@@ -1,7 +1,8 @@
 import React, { useReducer, useEffect } from 'react';
 import axios from 'axios';
-import { Form, FormGroup, Label, Input, Button, Col, Row } from 'reactstrap';
+import { Form, FormGroup, Label, Input, Button,Row,Col } from 'reactstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useCaterer } from '../contexts/CatererContext'; // Adjust the path as necessary
 import '../components/service.css';
 
 const initialState = {
@@ -10,7 +11,7 @@ const initialState = {
   price: '',
   duration: '',
   vegetarian: 'yes',
-  currentServiceId: null, // Add this to manage update operations
+  currentServiceId: null,
   services: [],
   error: null,
 };
@@ -23,8 +24,8 @@ const reducer = (state, action) => {
       return { ...state, services: action.payload };
     case 'SET_ERROR':
       return { ...state, error: action.payload };
-    case 'SET_SERVICE_ID':
-      return { ...state, currentServiceId: action.payload };
+    case 'RESET_FORM':
+      return initialState;
     default:
       throw new Error(`Unhandled action type: ${action.type}`);
   }
@@ -34,35 +35,54 @@ const CatererService = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const navigate = useNavigate();
   const location = useLocation();
-  const catererId = location.state?.catererId || localStorage.getItem('catererId');
-  
-  console.log('Caterer ID:', catererId);
+  const { serviceId, setServiceId,catererId } = useCaterer(); // Use CatererContext
 
   useEffect(() => {
-    // Fetch services from local storage if available
-    const storedServices = localStorage.getItem('services');
-    if (storedServices) {
-      dispatch({ type: 'SET_SERVICES', payload: JSON.parse(storedServices) });
-    }
+    const currentServiceId = location.state?.serviceId || serviceId || sessionStorage.getItem('serviceId');
+    console.log('Service ID from location or context:', currentServiceId);
 
-    // Fetch services from the server if catererId is present
-    if (catererId) {
-      fetchServices(catererId);
+    if (currentServiceId) {
+      fetchServiceById(currentServiceId);
     }
-  }, [catererId]);
+  }, [serviceId]);
 
-  const fetchServices = async (id) => {
+  const fetchServiceById = async (serviceId) => {
     try {
+      if (!serviceId) {
+        throw new Error('Service ID is missing');
+      }
+  
+      console.log('Fetching service with ID:', serviceId);
+  
+      // Direct GET request to the backend
       const token = localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:3010/api/services/${id}`, {
-        headers: { Authorization: token },
+      const response = await axios.get(`http://localhost:3010/api/services`,{
+        headers:{
+          Authorization:token
+        }
       });
-      dispatch({ type: 'SET_SERVICES', payload: response.data });
-      localStorage.setItem('services', JSON.stringify(response.data));
+  
+      console.log('Server Response:', response.data);
+  
+      // Since response is an array, find the service with the matching ID
+      const fetchedService = response.data.find(service => service._id === serviceId);
+      console.log('Fetched service data:', fetchedService);
+
+  
+      if (fetchedService) {
+        dispatch({ type: 'SET_SERVICES', payload: [fetchedService] });
+        localStorage.setItem('services', JSON.stringify([fetchedService]));
+        
+      } else {
+        console.error('Service not found in the returned array');
+        throw new Error('Service not found');
+      }
     } catch (err) {
+      console.error('Error fetching service:', err.message);
       dispatch({ type: 'SET_ERROR', payload: err.message });
     }
   };
+  
 
   const handleChange = (e) => {
     dispatch({ type: 'SET_FIELD', field: e.target.name, value: e.target.value });
@@ -78,53 +98,31 @@ const CatererService = () => {
         price: state.price,
         duration: state.duration,
         vegetarian: state.vegetarian,
-        catererId, // Add catererId to the payload
+        catererId
       };
 
       let response;
       if (!state.currentServiceId) {
-        // Creating a new service
         response = await axios.post('http://localhost:3010/api/services', payload, {
           headers: { Authorization: token },
         });
       } else {
-        // Updating an existing service
-        response = await axios.put(`http://localhost:3010/api/services/${state.currentServiceId}`, payload, {
-          headers: { Authorization: token },
-        });
+        response = await axios.put(`http://localhost:3010/api/services/${state.currentServiceId}`, payload);
       }
 
       console.log('Service response:', response);
 
-      // Update the services list
-      let updatedServices;
-      if (state.currentServiceId) {
-        updatedServices = state.services.map(service =>
-          service._id === state.currentServiceId ? response.data.service : service
-        );
-      } else {
-        updatedServices = [...state.services, response.data.service];
-      }
+      const createdServiceId = response.data.service._id; 
+      setServiceId(createdServiceId); // Store in context
+      sessionStorage.setItem('serviceId', createdServiceId);
+      console.log('Service ID stored in context and sessionStorage:', createdServiceId);
 
-      // Store the updated services in local storage
-      localStorage.setItem('services', JSON.stringify(updatedServices));
-      dispatch({ type: 'SET_SERVICES', payload: updatedServices });
+      dispatch({ type: 'RESET_FORM' });
 
-      // Store caterer ID and service response in session storage
-      sessionStorage.setItem('catererId', catererId);
-      sessionStorage.setItem('serviceResponse', JSON.stringify(response.data));
-
-      // Navigate to the caterer details page
-      if (catererId) {
-        navigate(`/caterer/details`, {
-          state: { caterer: response.data.caterer, service: response.data.service },
-        });
-      } else {
-        console.log('Caterer ID is missing in response');
-      }
-
-    } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
+      // Navigate to CatererDetails page after successful submission
+      navigate('/caterer/details', { state: { serviceId: createdServiceId } });
+    } catch (err) {
+      dispatch({ type: 'SET_ERROR', payload: err.message });
     }
   };
 
@@ -162,7 +160,7 @@ const CatererService = () => {
         <Row>
           <Col md={6}>
             <FormGroup>
-              <Label for="price">Price ($):</Label>
+              <Label for="price">Price (rs):</Label>
               <Input
                 type="number"
                 name="price"
@@ -191,7 +189,22 @@ const CatererService = () => {
           </Col>
         </Row>
         <Row>
-          <Col md={12}>
+          <Col md={6}>
+            <FormGroup>
+              <Label for="category">category:</Label>
+              <Input
+                type="text"
+                name="category"
+                id="category"
+                value={state.category}
+                onChange={handleChange}
+                required
+              />
+            </FormGroup>
+          </Col>
+          {/* </Row>
+        <Row> */}
+          <Col md={6}>
             <FormGroup>
               <Label for="description">Description:</Label>
               <Input

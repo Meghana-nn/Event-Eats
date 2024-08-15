@@ -13,7 +13,7 @@ export default function Home() {
         case 'admin':
             return <Navigate to="/admin" />;
         case 'caterer':
-            return <Navigate to={`/login/caterer/${user._id}`} />;
+            return <Navigate to={`/caterer/login/${user._id}`} />;
         case 'guest':
             return <Navigate to="/guest-home" />;
         default:

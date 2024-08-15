@@ -19,6 +19,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(user));
         if (user.catererId) {
             sessionStorage.setItem('catererId', user.catererId);
+            localStorage.setItem('services')
         }
         setUser(user);
     };
@@ -31,6 +32,8 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('userId');
         sessionStorage.removeItem('catererId');
         localStorage.removeItem('catererId');
+        sessionStorage.removeItem('serviceId')
+        localStorage.removeItem('services')
         
     };
 

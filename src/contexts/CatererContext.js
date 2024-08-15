@@ -15,6 +15,8 @@ export const CatererProvider = ({ children }) => {
     const [userId, setUserId] = useState(localStorage.getItem('userId') || '');
     const [catererId, setCatererId] = useState(sessionStorage.getItem('catererId') || localStorage.getItem('catererId') || '');
     const [catererData, setCatererData] = useState(null);
+    const [serviceId, setServiceId] = useState(sessionStorage.getItem('serviceId') || '');
+    const [services, setServices] = useState(JSON.parse(sessionStorage.getItem('services')) || []);
 
     useEffect(() => {
         if (userId) {
@@ -24,16 +26,21 @@ export const CatererProvider = ({ children }) => {
                 fetchCatererIdAndData(userId);
             }
         }
-    }, [userId]);
+    }, [userId, catererId]);
+
+    useEffect(() => {
+        if (catererId) {
+            fetchServices(catererId);
+        }
+    }, [catererId]);
 
     const fetchCatererIdAndData = async (userId) => {
         try {
-          const token=localStorage.getItem('token')
-            const response = await axios.get(`http://localhost:3010/api/caterers/users/${userId}`,{
-              headers: { Authorization: token },
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`http://localhost:3010/api/caterers/users/${userId}`, {
+                headers: { Authorization: token },
             });
-            console.log('response-sidebar',response)
-         
+
             const caterer = response.data;
 
             if (caterer && caterer._id) {
@@ -41,7 +48,6 @@ export const CatererProvider = ({ children }) => {
                 setCatererId(retrievedCatererId);
                 setCatererData(caterer);
 
-                // Store the catererId in both sessionStorage and localStorage
                 sessionStorage.setItem('catererId', retrievedCatererId);
                 localStorage.setItem('catererId', retrievedCatererId);
             } else {
@@ -55,11 +61,11 @@ export const CatererProvider = ({ children }) => {
 
     const fetchCatererData = async (userId, catererId) => {
         try {
-          const token=localStorage.getItem('token')
-            const response = await axios.get(`http://localhost:3010/api/caterers/${catererId}`,{
-              headers: { Authorization: token },
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`http://localhost:3010/api/caterers/${catererId}`, {
+                headers: { Authorization: token },
             });
-            
+
             const caterer = response.data;
 
             if (caterer) {
@@ -74,15 +80,37 @@ export const CatererProvider = ({ children }) => {
         }
     };
 
+    const fetchServices = async (catererId) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`http://localhost:3010/api/services/caterer/${catererId}`, {
+                headers: { Authorization: token },
+            });
+
+            const services = response.data;
+
+            if (services) {
+                setServices(services);
+                sessionStorage.setItem('services', JSON.stringify(services));
+            }
+        } catch (error) {
+            console.error('Error fetching services:', error);
+            resetCaterer(); // Handle error by resetting the caterer and services data
+        }
+    };
+
     const resetCaterer = () => {
         setCatererId('');
         setCatererData(null);
+        setServices([]); // Reset services state
         sessionStorage.removeItem('catererId');
         localStorage.removeItem('catererId');
+        sessionStorage.removeItem('serviceId');
+        localStorage.removeItem('services'); // Remove services from sessionStorage
     };
 
     return (
-        <CatererContext.Provider value={{ userId, setUserId, catererId, setCatererId, catererData, setCatererData, resetCaterer }}>
+        <CatererContext.Provider value={{ userId, setUserId, catererId, setCatererId, catererData, setCatererData, serviceId, setServiceId, services, resetCaterer }}>
             {children}
         </CatererContext.Provider>
     );

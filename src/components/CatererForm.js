@@ -194,7 +194,7 @@ function CatererForm() {
       <div className="background-img"></div>
       {userCatererExists ? (
         <div>
-          <h2>You already have a caterer service</h2>
+          <h4>You are already a caterer </h4>
           <Button color="primary" onClick={() => navigate('service')}>
             Go to Service
           </Button>
