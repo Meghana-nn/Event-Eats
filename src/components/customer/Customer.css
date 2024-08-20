@@ -1,0 +1,166 @@
+/* .customer-events-container {
+    width: 100%;
+    max-width: 400px;
+    max-height: 100px;
+    margin: 40 auto;
+  
+    background-color: #99121271;
+   
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+} */
+
+.customer-events-box {
+    background-color: #6e141470;
+    padding: 10px;
+    max-width: 400px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ccc;
+}
+
+.customer-events-container h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.customer-events-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-input {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.submit-button {
+    padding: 10px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+    background-color: #218838;
+}
+
+
+
+
+.customer-menu-container {
+    display: flex;
+    
+  }
+  
+  .customerSidebar {
+    width: 200px; /* Fixed width for the sidebar */
+   max-height: 1500px;
+    padding: 20px; /* Padding inside the sidebar */
+    box-sizing: border-box; /* Ensure padding doesn't affect the width */
+    border-right: 2px solid #073a6a; 
+    /* background-color: #28a745; */
+  }
+
+  
+  
+  .main-content {
+    
+    width: 80%;
+    display:flex;
+    flex-direction: column;
+    grid-gap: 10px; /* Adjust the spacing between sections as needed */
+  }
+  
+  .caterer-SidebarCard{
+    background-color: #fff;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+
+  .caterer-card {
+    background-color: #fff;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+
+
+  .sectionOne {
+    box-sizing: border-box;
+    background-color: #e5efe7;
+    margin-bottom: 10px;
+    height: 300px;
+    border-bottom:2px solid #bec5bf;
+  }
+
+  .sectionTwo {
+    box-sizing: border-box;
+    background-color: #e4e3d94f;
+    margin-bottom: 10px;
+    height: 400px;
+    border-bottom: 2px solid #ccc;
+  }
+
+  .services-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  
+  .sectionThree {
+    box-sizing: border-box;
+    background-color: #f6eeee16;
+    height: 400px;
+    border-bottom: 2px solid #ccc;
+  }
+  
+  .service-card {
+    background-color: #fff;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .menu-items-container {
+    display: flex;
+    overflow-x: auto; /* Enable horizontal scrolling */
+    padding: 10px;
+    gap:19px
+  }
+
+  .menu-item-card {
+    background-color: #fff;
+    padding: 10px;
+    margin-right: 10px; /* Space between cards */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    flex: 0 0 auto;
+    /* Prevent cards from shrinking */
+  }
+
+  .menuItemImage {
+    width: 100px;
+    height: 100px; 
+    object-fit: cover;
+    border-radius: 8px; 
+    margin-top: 10px; 
+  }
+
+  button {
+    margin-top: 10px; /* Space between image and button */
+  }

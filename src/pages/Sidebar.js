@@ -1,10 +1,10 @@
 import React, { useState, useEffect,  } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCaterer } from '../contexts/CatererContext';
-import CatererForm from '../components/CatererForm';
-import CatererMenu from '../components/menu/CatererMenu';
-import CatererDetails from '../components/CatererDetails';
-import CatererService from '../components/CatererService';
+import CatererForm from '../components/caterer/CatererForm';
+import CatererMenu from '../components/caterer/CatererMenu';
+import CatererDetails from '../components/caterer/CatererDetails';
+import CatererService from '../components/caterer/CatererService';
 import '../App.css';
 
 const Sidebar = () => {

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-
+import { useCaterer } from '../contexts/CatererContext'; 
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
         const storedUser = localStorage.getItem('user');
         return storedUser ? JSON.parse(storedUser) : null;
     });
+   
 
     const handleLogin = (user) => {
         // Store user details in local storage
@@ -20,6 +21,7 @@ export const AuthProvider = ({ children }) => {
         if (user.catererId) {
             sessionStorage.setItem('catererId', user.catererId);
             localStorage.setItem('services')
+            sessionStorage.setItem('menuItems')
         }
         setUser(user);
     };
@@ -34,6 +36,8 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('catererId');
         sessionStorage.removeItem('serviceId')
         localStorage.removeItem('services')
+        localStorage.removeItem('caterers')
+        sessionStorage.removeItem('menuItems')
         
     };
 

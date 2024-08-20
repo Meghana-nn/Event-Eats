@@ -54,11 +54,11 @@ export default function Login() {
                 });
                 handleLogin(userResponse.data);
 
-                console.log(userResponse)
+               
 
                 const userRole = userResponse.data.role;
                 const userId = userResponse.data._id;
-                console.log(userRole)
+                
                 console.log('user id',userId)
 
                 if (userRole === 'admin') {
@@ -66,7 +66,9 @@ export default function Login() {
                 } else if (userRole === 'caterer') {
                     sessionStorage.setItem('userId', userId);
                     navigate(`/caterer/login/${userId}`);
-                } else {
+                } else if(userRole==='customer') {
+                    navigate(`/customer/login/${userId}`);
+                }else {
                     navigate('/');
                 }
             } catch (err) {

@@ -1,14 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import logo from "../assets/Eats_Logo.png";
-import { FaCircleUser } from "react-icons/fa6";
-import { useAuth } from '../contexts/Auth';
+import { FaCircleUser, FaCartShopping } from "react-icons/fa6";
 import { BsCalendarEventFill } from "react-icons/bs";
 import { motion, AnimatePresence } from 'framer-motion';
-import '../App.css'
+import { useAuth } from '../contexts/Auth';
+import { useCart } from '../contexts/CartContext';
+import '../App.css';
 
 const Header = () => {
   const { user, handleLogout } = useAuth();
+  const { cartItems} = useCart();
 
   const linkVariants = {
     hover: { scale: 1.1 },
@@ -30,7 +32,7 @@ const Header = () => {
             </div>
           </Link>
           <div className='flex items-center gap-4 md:gap-7'>
-            <nav className='flex gap-4 md:gap-6 text-base md:text-text-lg'>
+            <nav className='flex gap-4 md:gap-6 text-base md:text-lg'>
               <motion.div whileHover="hover" whileTap="tap" variants={linkVariants}>
                 <Link to="/" style={linkStyle}>HOME</Link>
               </motion.div>
@@ -58,7 +60,7 @@ const Header = () => {
             ) : (
               <>
                 <motion.div whileHover="hover" whileTap="tap" variants={linkVariants}>
-                  <Link to="/account" className="text-1xl text-slate-500" style={{ color: 'black', ...linkStyle }}>ACCOUNT</Link>
+                  <Link to="/account" className=" text-1xl text-slate-500" style={{ color: 'black', ...linkStyle }}>ACCOUNT</Link>
                 </motion.div>
                 <motion.div whileHover="hover" whileTap="tap" variants={linkVariants}>
                   <Link to="/" onClick={() => {
@@ -69,17 +71,34 @@ const Header = () => {
               </>
             )}
           </div>
-          {user && user.role === 'caterer' && (
+          {user && (
             <div className='flex items-center gap-4 md:gap-7'>
-              <motion.div whileHover="hover" whileTap="tap" variants={linkVariants}>
-                <Link to="/caterer" style={linkStyle}>CatererDashboard</Link>
-              </motion.div>
-              <motion.div whileHover="hover" whileTap="tap" variants={linkVariants}>
-                <Link to="/event" className='relative text-2xl' style={{ color: 'black', ...linkStyle }}>
-                  <BsCalendarEventFill />
-                  <div className='-top-5 -right-6  relative text-black bg-blue-700 h-4 w-4 rounded-full -m-2 text-xs -p-2 text-center'>0</div>
-                </Link>
-              </motion.div>
+              {user.role === 'caterer' && (
+                <motion.div whileHover="hover" whileTap="tap" variants={linkVariants}>
+                  <Link to="/caterer" style={linkStyle}>Caterer Dashboard</Link>
+                </motion.div>
+              )}
+              {user.role === 'customer' && (
+                <>
+                  <motion.div whileHover="hover" whileTap="tap" variants={linkVariants}>
+                    <Link to="/customers" style={linkStyle}>Customer Dashboard</Link>
+                  </motion.div>
+                  <motion.div whileHover="hover" whileTap="tap" variants={linkVariants}>
+                    <Link to="/cart" className='relative text-3xl' style={{ color: 'black', ...linkStyle }}>
+                      <FaCartShopping />
+                      <div className='-top-6 -right-6  relative text-black bg-blue-700 h-4 w-4 rounded-full -m-2 text-xs -p-2 text-center'>{cartItems.length}</div>
+                    </Link>
+                  </motion.div>
+                </>
+              )}
+              {(user.role === 'caterer' || user.role === 'customer') && (
+                <motion.div whileHover="hover" whileTap="tap" variants={linkVariants}>
+                  <Link to="/event" className='relative text-2xl' style={{ color: 'black', ...linkStyle }}>
+                    <BsCalendarEventFill />
+                    <div className='-top-5 -right-6  relative text-black bg-blue-700 h-4 w-4 rounded-full -m-2 text-xs -p-2 text-center'>0</div>
+                  </Link>
+                </motion.div>
+              )}
             </div>
           )}
         </div>

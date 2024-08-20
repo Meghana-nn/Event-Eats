@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 const CatererContext = createContext();
@@ -17,30 +17,20 @@ export const CatererProvider = ({ children }) => {
     const [catererData, setCatererData] = useState(null);
     const [serviceId, setServiceId] = useState(sessionStorage.getItem('serviceId') || '');
     const [services, setServices] = useState(JSON.parse(sessionStorage.getItem('services')) || []);
+    const [menuItems, setMenuItems] = useState(JSON.parse(sessionStorage.getItem('menuItems')) || []);
+    const [caterers, setCaterers] = useState([]);
+    
 
-    useEffect(() => {
-        if (userId) {
-            if (catererId) {
-                fetchCatererData(userId, catererId);
-            } else {
-                fetchCatererIdAndData(userId);
-            }
-        }
-    }, [userId, catererId]);
-
-    useEffect(() => {
-        if (catererId) {
-            fetchServices(catererId);
-        }
-    }, [catererId]);
-
-    const fetchCatererIdAndData = async (userId) => {
+    const fetchCatererIdAndData = useCallback(async (userId) => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get(`http://localhost:3010/api/caterers/users/${userId}`, {
-                headers: { Authorization: token },
-            });
+            console.log('Fetching caterer for userId:', userId);
 
+            const response = await axios.get(`http://localhost:3010/api/caterers/users/${userId}`,{
+                headers:{
+                    Authorization:localStorage.getItem('token')
+                }
+            });
+            console.log("Caterer:", response.data);
             const caterer = response.data;
 
             if (caterer && caterer._id) {
@@ -51,41 +41,60 @@ export const CatererProvider = ({ children }) => {
                 sessionStorage.setItem('catererId', retrievedCatererId);
                 localStorage.setItem('catererId', retrievedCatererId);
             } else {
-                resetCaterer(); // If no caterer is found, reset
+                resetCaterer();
+                console.log('Caterer not found');
             }
         } catch (error) {
             console.error('Error fetching caterer by userId:', error);
-            resetCaterer(); // Handle error by resetting the caterer data
+            resetCaterer();
         }
-    };
+    }, []);
 
-    const fetchCatererData = async (userId, catererId) => {
+    const fetchCatererData = useCallback(async (userId, catererId) => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get(`http://localhost:3010/api/caterers/${catererId}`, {
-                headers: { Authorization: token },
-            });
+            const response = await axios.get(`http://localhost:3010/api/caterers/${catererId}`);
 
             const caterer = response.data;
 
             if (caterer) {
                 setCatererData(caterer);
-                sessionStorage.setItem('catererId', caterer._id); // Ensure sessionStorage is up to date
+                sessionStorage.setItem('catererId', caterer._id);
             } else {
-                resetCaterer(); // Handle case where caterer doesn't exist anymore
+                resetCaterer();
             }
         } catch (error) {
             console.error('Error fetching caterer:', error);
             resetCaterer();
         }
-    };
+    }, []);
 
-    const fetchServices = async (catererId) => {
+    const fetchCaterers = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get(`http://localhost:3010/api/services/caterer/${catererId}`, {
-                headers: { Authorization: token },
-            });
+          const response = await axios.get('http://localhost:3010/api/caterers');
+          if (response && response.data) {
+            setCaterers(response.data);
+            localStorage.setItem('caterers', JSON.stringify(response.data))
+            console.log('Caterers fetched:', response.data);
+          }
+        } catch (error) {
+          console.error('Error fetching caterers:', error);
+        }
+      };
+
+      useEffect(() => {
+        const storedCaterers = localStorage.getItem('caterers');
+        if (storedCaterers) {
+            setCaterers(JSON.parse(storedCaterers)); 
+            console.log('Caterers loaded from storage:', JSON.parse(storedCaterers));
+        } else {
+            fetchCaterers(); 
+        }
+        }, []);
+    
+
+    const fetchServices = useCallback(async (catererId) => {
+        try {
+            const response = await axios.get(`http://localhost:3010/api/services/caterer/${catererId}`);
 
             const services = response.data;
 
@@ -95,22 +104,102 @@ export const CatererProvider = ({ children }) => {
             }
         } catch (error) {
             console.error('Error fetching services:', error);
-            resetCaterer(); // Handle error by resetting the caterer and services data
+            resetCaterer();
         }
-    };
+    }, []);
+
+    const fetchMenuItems = useCallback(async (catererId) => {
+        try {
+            const response = await axios.get(`http://localhost:3010/api/menuItem/caterer/${catererId}`);
+
+            const menuItems = response.data;
+
+            if (menuItems) {
+                setMenuItems(menuItems);
+                sessionStorage.setItem('menuItems', JSON.stringify(menuItems));
+                console.log("Menu Items fetched:", response.data);
+            }
+        } catch (error) {
+            console.error('Error fetching menu items:', error);
+            resetCaterer();
+        }
+    }, []);
+
+    const updateMenuItems = async () => {
+        try {
+          const response = await axios.get('http://localhost:3010/api/menuItem');
+          setMenuItems(response.data);
+        } catch (error) {
+          console.error('Error updating menu items:', error);
+        }
+      };
+
+    const fetchAllCaterers = useCallback(async () => {
+        try {
+            const response = await axios.get('http://localhost:3010/api/caterers');
+            const allCaterers = response.data;
+
+            if (allCaterers) {
+                setCaterers(allCaterers);
+                sessionStorage.setItem('caterers', JSON.stringify(allCaterers));
+            }
+        } catch (error) {
+            console.error('Error fetching all caterers:', error);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (userId) {
+            if (catererId) {
+                fetchCatererData(userId, catererId);
+            } else {
+                fetchCatererIdAndData(userId);
+            }
+        }
+    }, [userId, catererId, fetchCatererData, fetchCatererIdAndData]);
+
+ 
+
+    useEffect(() => {
+        fetchAllCaterers();
+    }, [fetchAllCaterers]);
 
     const resetCaterer = () => {
         setCatererId('');
         setCatererData(null);
-        setServices([]); // Reset services state
+        setServices([]);
+        setMenuItems([]);
         sessionStorage.removeItem('catererId');
+        sessionStorage.removeItem('services');
+        sessionStorage.removeItem('menuItems');
         localStorage.removeItem('catererId');
-        sessionStorage.removeItem('serviceId');
-        localStorage.removeItem('services'); // Remove services from sessionStorage
+        localStorage.removeItem('caterers')
     };
 
     return (
-        <CatererContext.Provider value={{ userId, setUserId, catererId, setCatererId, catererData, setCatererData, serviceId, setServiceId, services, resetCaterer }}>
+        <CatererContext.Provider value={{ 
+            userId, 
+            setUserId, 
+            catererId, 
+            setCatererId, 
+            catererData, 
+            setCatererData, 
+           
+            setCaterers,
+            serviceId, 
+            setServiceId, 
+            services, 
+            setServices,
+            menuItems,
+            setMenuItems,
+            caterers,
+            setCaterers,
+            resetCaterer ,
+            fetchAllCaterers,
+            fetchServices,
+            fetchMenuItems,
+            updateMenuItems
+        }}>
             {children}
         </CatererContext.Provider>
     );
