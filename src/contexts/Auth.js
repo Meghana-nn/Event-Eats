@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState } from 'react';
-import { useCaterer } from '../contexts/CatererContext'; 
 const AuthContext = createContext();
 
 export const useAuth = () => {

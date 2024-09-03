@@ -1,27 +1,35 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useContext } from 'react';
 
-const CartContext = createContext();
+const CartFunctionsContext = createContext();
 
-export const useCart = () => useContext(CartContext);
-
-export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState([]);
-
-  const addToCart = (item) => {
-    setCartItems([...cartItems, item]);
+export const CartFunctionsProvider = ({ children }) => {
+  const handleAddMenuItemToCart = (item) => {
+    console.log('Item to add to cart:', item);
+    if (!item._id || !item.price) {
+      console.error('Item does not have an id or price:', item);
+      return;
+    }
+    addItem({ id: item._id, name: item.itemName, price: item.price, ...item });
+    setCartCount(cartCount + 1);
+    alert(`You added the menu item: ${item.itemName}`);
   };
 
-  const removeFromCart = (id) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
-  };
-
-  const updateCartItem = (id, updatedItem) => {
-    setCartItems(cartItems.map(item => item.id === id ? updatedItem : item));
+  const handleAddServiceToCart = (service) => {
+    console.log('Service to book:', service);
+    if (!service._id || !service.price) {
+      console.error('Service does not have an id or price:', service);
+      return;
+    }
+    addItem({ id: service._id, name: service.serviceName, price: service.price, ...service });
+    setCartCount(cartCount + 1);
+    alert(`You booked the service: ${service.serviceName}`);
   };
 
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateCartItem }}>
+    <CartFunctionsContext.Provider value={{ handleAddMenuItemToCart, handleAddServiceToCart }}>
       {children}
-    </CartContext.Provider>
+    </CartFunctionsContext.Provider>
   );
 };
+
+export const useCartFunctions = () => useContext(CartFunctionsContext);

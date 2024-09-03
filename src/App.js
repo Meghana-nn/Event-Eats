@@ -11,6 +11,8 @@ import About from './pages/About';
 import AdminDashboard from './components/AdminDashboard';
 import CatererDashboard from './components/caterer/CatererDashboard';
 import CustomerDashboard from './components/customer/CustomerDashboard';
+import CustomerEvents from './components/customer/CustomerEvents';
+import CustomerEventList from './components/customer/CustomerEventList';
 import { useAuth } from './contexts/Auth';
 import { CatererProvider } from './contexts/CatererContext';
 import { CustomerProvider } from './contexts/CustomerContext';
@@ -23,8 +25,16 @@ import CustomerLogin from './components/customer/CustomerLogin';
 import CustomerMenu from './components/customer/CustomerMenu';
 import './App.css';
 import LandingPage from './pages/LandingPage';
-import { CartProvider } from './contexts/CartContext';
+import { CartProvider } from 'react-use-cart';
 import Cart from './components/Cart';
+import Payment from './components/payment/Payment';
+import TestNavigate from './components/TestNvigate';
+import EventHome from './components/customer/EventHome';
+import SuccessPayment from './components/payment/SuccessPayment';
+
+import ChatWindow from './components/enquiry/Chatwindow'; 
+import CustomerEnquiry from './components/enquiry/CustomerEnquiry';
+import CatererEnquiry from './components/enquiry/CatererEnquiry';
 
 function App() {
   const { handleLogin } = useAuth();
@@ -44,43 +54,55 @@ function App() {
 
   return (
     <>
-     <CustomerProvider>
-      <CartProvider>
-      <Header />
-      <main className='pt-28'>
-        <CatererProvider>
-         
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="register" element={<Register />} />
-              <Route path="login" element={<Login />} />
-              <Route path="menu" element={<Menu />} />
-              <Route path="contact" element={<Contact />} />
-              <Route path="about" element={<About />} />
-              <Route path="/event" element={<Event />} />
-              <Route path="account" element={<Account />} />
-              <Route path="admin" element={<AdminDashboard />} />
-              <Route path="success" element={<Success />} />
-              <Route path='landing' element={<LandingPage/>}/>
+    
+      <CatererProvider>
+        <CustomerProvider>
+          <CartProvider>
+            <Header />
+            <main className='pt-28'>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="register" element={<Register />} />
+                <Route path="login" element={<Login />} />
+                <Route path="menu" element={<Menu />} />
+                <Route path="contact" element={<Contact />} />
+                <Route path="about" element={<About />} />
+                <Route path="event" element={<Event />} />
+                <Route path="account" element={<Account />} />
+                <Route path="admin" element={<AdminDashboard />} />
+                <Route path="success" element={<Success />} />
+                <Route path='landing' element={<LandingPage />} />
 
-              {/* Caterer specific routes */}
-              <Route path="caterer/*" element={<CatererDashboard />} />
-              <Route path="caterer/login/:userId" element={<CatererLogin />} />
-              <Route path="caterer/list/menu" element={<ListMenu />} />
+                {/* Caterer specific routes */}
+                <Route path="caterer/*" element={<CatererDashboard />} />
+                <Route path="caterer/login/:userId" element={<CatererLogin />} />
+                <Route path="caterer/list/menu" element={<ListMenu />} />
 
-              {/* Customer specific routes */}
-              <Route path="customers/*" element={<CustomerDashboard />} />
-              <Route path="customer/login/:userId" element={<CustomerLogin />} />
-              <Route path="customers/list/menu" element={<CustomerMenu/>}/>
+                {/* Customer specific routes */}
+                <Route path="customers/*" element={<CustomerDashboard />} />
+                <Route path="customer/login/:userId" element={<CustomerLogin />} />
+                <Route path="customers/list/menu" element={<CustomerMenu />} />
+                <Route path="customers/events/home" element={<EventHome/>}/>
+                <Route path="customers-events" element={<CustomerEvents />} />
+                {/* <Route path="/test" element={<div>Test Page</div>} /> */}
+                <Route path="customers/events/fetch" element={<CustomerEventList />} />
 
-              
-              <Route path='cart' element={<Cart/>}/>
-            </Routes>
-         
-        </CatererProvider>
-      </main>
-      </CartProvider>
-    </CustomerProvider>
+                <Route path='cart' element={<Cart />} />
+                <Route path='/cart/payment' element={<Payment />} />
+                <Route path="success/payment" element={<SuccessPayment />} />
+
+                <Route path="chat/:userId" element={<ChatWindow />} />
+                <Route path="enquiries/customers" element={<CustomerEnquiry />} />
+                <Route path="enquiries/caterers" element={<CatererEnquiry />} />
+                
+                
+               
+                
+              </Routes>
+            </main>
+          </CartProvider>
+        </CustomerProvider>
+      </CatererProvider>
     </>
   );
 }

@@ -1,0 +1,168 @@
+.cart-menu-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .cart-services-section, .cart-menu-items-section, .cart-details {
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 20px;
+  }
+
+  .header-info-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .header-info-content p {
+    display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  }
+  
+  .event-name {
+    margin: 0;
+    color: #333;
+    font-size: 1.2em;
+  }
+  
+
+  .cart-service-card, .cart-menu-item-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .cart-menuItemImage {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+
+
+  
+
+  .item-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; 
+}
+  
+  
+  .item-image {
+    width: 60px; /* Adjust as needed */
+    height: 50px;
+    border-radius: 1px;
+    margin-right: 10px;
+  }
+  
+  
+  .cart-details {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .cart-details table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .cart-details th, .cart-details td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .cart-details th {
+    background-color: #f4f4f4;
+  }
+  
+  .cart-details td {
+    background-color: #fff;
+  }
+  
+  .cart-details .remove-button {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .cart-details .remove-button:hover {
+    background-color: #ff1a1a;
+  }
+  
+  .total-price {
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+  }
+  
+  .remove-button {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  
+  .remove-button:hover {
+    background-color: #af8686;
+  }
+  
+  .total-price {
+    margin-top: 20px;
+  }
+  
+  .pay-button-container {
+    margin-top: -80px;
+    position: relative;
+    margin-left:400px;
+  }
+  
+  .pay-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 30px;
+    width: 350px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .pay-circle {
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    left: 5px;
+    transition: left 0.3s ease;
+  }
+  
+  .pay-text {
+    flex-grow: 1;
+    text-align: center;
+    z-index: 1;
+    color: white;
+  }
+  

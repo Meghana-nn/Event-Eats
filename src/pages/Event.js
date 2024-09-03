@@ -1,24 +1,36 @@
-import React from 'react'
+import React, { useEffect } from 'react';
 import { useAuth } from "../contexts/Auth";
-import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 function Event() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    switch (user.role) {
+      case 'admin':
+        navigate('/admin');
+        break;
+      case 'caterer':
+        navigate('/caterer/events');
+        break;
+      case 'customer':
+        navigate('/customers/events/home');
+        break;
+      default:
+        break;
+    }
+  }, [user, navigate]);
+
   if (!user) {
     return <p>User not logged in</p>;
+  }
+
+  return <p>Welcome {user.username}</p>;
 }
 
-switch (user.role) {
-    case 'admin':
-        return <Navigate to="/admin" />;
-    case 'caterer':
-        return <Navigate to={`/caterer`} />;
-    case 'customer':
-        return <Navigate to={`/customers/events`} />;
-        
-    default:
-        return <p>Welcome {user.username}</p>;
-}
-}
-
-export default Event
+export default Event;

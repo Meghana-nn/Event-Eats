@@ -1,57 +1,21 @@
-/* .customer-events-container {
-    width: 100%;
-    max-width: 400px;
-    max-height: 100px;
-    margin: 40 auto;
+.create-event-container {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+  }
   
-    background-color: #99121271;
-   
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-} */
-
-.customer-events-box {
-    background-color: #6e141470;
-    padding: 10px;
-    max-width: 400px;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    border: 1px solid #ccc;
-}
-
-.customer-events-container h1 {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.customer-events-form {
-    display: flex;
-    flex-direction: column;
-}
-
-.form-input {
-    margin-bottom: 15px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-.submit-button {
-    padding: 10px;
-    background-color: #28a745;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.submit-button:hover {
-    background-color: #218838;
-}
+  .form-group label {
+    font-weight: bold;
+  }
+  
+  button {
+    margin-top: 10px;
+  }
+  
 
 
-
-
+/* customer-display */
 .customer-menu-container {
     display: flex;
     
@@ -75,6 +39,26 @@
     flex-direction: column;
     grid-gap: 10px; /* Adjust the spacing between sections as needed */
   }
+
+
+  .navigate-button {
+    position: absolute;
+    top: 90px; /* Adjust as needed */
+    right: 20px; /* Adjust as needed */
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .navigate-button:hover {
+    background-color: #0056b3;
+  }
+
+
   
   .caterer-SidebarCard{
     background-color: #fff;
@@ -95,6 +79,25 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 
+  .caterer-card button {
+    background-color: #0d0733; /* Green background */
+    border: none; /* Remove borders */
+    color: rgb(205, 191, 191); /* White text */
+    padding: 10px 20px; /* Some padding */
+    text-align: center; /* Center the text */
+    text-decoration: none; /* Remove underline */
+    display: inline-block; /* Make the button inline-block */
+    font-size: 11px; /* Increase font size */
+    margin: 10px 1px; /* Some margin */
+    cursor: pointer; /* Pointer/hand icon */
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s ease; /* Smooth transition */
+  }
+  
+  .caterer-card button:hover {
+    background-color: #073d5d; /* Darker green on hover */
+  }
+  
 
 
   .sectionOne {
@@ -164,3 +167,69 @@
   button {
     margin-top: 10px; /* Space between image and button */
   }
+
+
+
+/* Styles for the event table */
+
+.event-cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; /* Space between each card */
+}
+
+.card {
+  
+  width: 300px; /* Adjust max width of each card */
+  box-shadow: 0 4px 8px rgba(210, 31, 31, 0.237); /* Add a subtle shadow */
+  border-radius: 8px; /* Slightly rounded corners */
+  margin-bottom: 20px; /* Space at the bottom for each card */
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px; /* Padding inside the card */
+}
+
+.card-title {
+  font-size: 1.25rem; /* Adjust title size */
+  margin-bottom: 8px;
+}
+
+.card-text {
+  margin-bottom: 12px;
+}
+
+.btn-group {
+  display: flex;
+  justify-content: flex-end; /* Align buttons to the right */
+  gap: 10px; /* Space between buttons */
+  margin-top: 10px; /* Space between buttons and content */
+}
+
+.btn-group .btn {
+  width: 50px; /* Smaller button width */
+  padding: 2px 2px; /* Reduce padding */
+  font-size: 0.875rem; /* Smaller font size */
+  text-align: center;
+  border-radius: 4px; /* Slightly rounded corners */
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+  

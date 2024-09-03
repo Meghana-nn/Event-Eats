@@ -13,12 +13,12 @@ function ItemsDisplay() {
   return (
     <div className='itemSection'>
         <h4>Top Menus</h4>
-      <div className='cardContainer'>
+      <div className='front-cardContainer'>
         {display.map((item, i) => {
           return (
-            <div className='card' key={i} onClick={() => handleClick(item)}>
-              <img src={item.item_img} alt={`Item${i}`} className='cardImage' />
-              <div className='cardContent'>
+            <div className='front-card' key={i} onClick={() => handleClick(item)}>
+              <img src={item.item_img} alt={`Item${i}`} className='front-cardImage' />
+              <div className='front-cardContent'>
                 <h3>{item.name}</h3>
                 <p>{item.description}</p>
               </div>

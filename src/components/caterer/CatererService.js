@@ -161,7 +161,7 @@ const CatererService = () => {
         <Row>
           <Col md={6}>
             <FormGroup>
-              <Label for="price">Price (rs):</Label>
+              <Label for="price">Price (₹):</Label>
               <Input
                 type="number"
                 name="price"

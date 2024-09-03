@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useCaterer } from '../../contexts/CatererContext';
-import { useCart } from '../../contexts/CartContext';
+import { useCart } from 'react-use-cart';
+import { useNavigate } from 'react-router-dom';
+
 import '../customer/Customer.css';
 
 function CustomerMenu() {
@@ -13,17 +15,18 @@ function CustomerMenu() {
     services
   } = useCaterer();
 
-  const { addToCart, cartItems } = useCart();
-  const [cartCount, setCartCount] = useState(cartItems);
+  const { addItem } = useCart();
+  const [cartCount, setCartCount] = useState(0);
   const [selectedCaterer, setSelectedCaterer] = useState(
     JSON.parse(localStorage.getItem('selectedCaterer')) || null
   );
   const [catererImages, setCatererImages] = useState({});
   const [catererMenuDetails, setCatererMenuDetails] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchAllCaterers();
-  }, []);
+  }, [fetchAllCaterers]);
 
   useEffect(() => {
     if (selectedCaterer) {
@@ -31,7 +34,7 @@ function CustomerMenu() {
       fetchServices(selectedCaterer._id);
       localStorage.setItem('selectedCaterer', JSON.stringify(selectedCaterer));
     }
-  }, [selectedCaterer]);
+  }, [selectedCaterer, fetchMenuItems, fetchServices]);
 
   useEffect(() => {
     if (menuItems.length > 0 && selectedCaterer) {
@@ -53,16 +56,69 @@ function CustomerMenu() {
     setSelectedCaterer(caterer);
   };
 
-  const handleServiceAction = (service) => {
-    alert(`You booked the service: ${service.serviceName}`);
-    // Additional actions like adding to cart or booking logic
+  const handleAddCatererToEvent = (caterer) => {
+    console.log('Caterer to add to event:', caterer);
+    if (!caterer._id || !caterer.name) {
+        console.error('Caterer does not have an id or name:', caterer);
+        return;
+    }
+    // Save the caterer details for the event
+    localStorage.setItem('eventCaterer', JSON.stringify(caterer));
+    alert(`${caterer.name} is set for the event!`);
   };
 
-  const handleAddToCart = (item) => {
-    addToCart(item);
+  const handleAddServiceToCart = (service) => {
+    console.log('Service to book:', service);
+    if (!service._id || !service.price) {
+        console.error('Service does not have an id or price:', service);
+        return;
+    }
+    addItem({ id: service._id, name: service.serviceName, price: service.price,...service });
+    setCartCount(cartCount + 1);
+    alert(`You booked the service: ${service.serviceName}`);
+  };
+
+  const handleAddMenuItemToCart = (item) => {
+    console.log('Item to add to cart:', item);
+
+    // Check if item has necessary properties
+    if (!item._id || !item.amount || !item.menuImages || item.menuImages.length === 0) {
+        console.error('Item does not have an id, price, or images:', item);
+        return;
+    }
+
+    // Construct the cart item with the selected image
+    const cartItem = {
+        id: item._id,
+        name: item.name,
+        price: item.amount,
+        quantity: 1, // Default quantity is 1
+        image: item.menuImages[0] // Use the selected menu item's image
+    };
+
+    // Add item to the cart
+    addItem(cartItem);
     setCartCount(cartCount + 1);
     alert(`${item.name} added to cart!`);
-  };
+};
+
+
+  const handleNavigateToEvent = () => {
+    if (selectedCaterer) {
+    // Navigate manually with the state
+    navigate('/customers-events', {
+     
+      state: {
+        catererId: selectedCaterer._id,
+        caterer: selectedCaterer ? selectedCaterer._id : null,
+        services: services.filter(service => service._id),
+        menuItems: menuItems.filter(item => item._id)
+      }
+    });
+  }else {
+    alert("Please select a caterer before proceeding.");
+  }
+};
 
   return (
     <div className="customer-menu-container">
@@ -71,17 +127,15 @@ function CustomerMenu() {
           {caterers.map((caterer) => (
             <li key={caterer._id} className="caterer-list-item" onClick={() => handleCatererClick(caterer)}>
               <div className="caterer-card">
-                <h2>{caterer.name}</h2>
+                <h4>{caterer.name}</h4>
                 {catererImages[caterer._id] && (
                   <>
                     <img src={catererImages[caterer._id]} alt={caterer.name} className='catererCardImage' />
-                    <p>{catererMenuDetails[caterer._id]?.name}</p>
-                    <p>Price: ${catererMenuDetails[caterer._id]?.amount}</p>
                     <button onClick={(e) => { 
                       e.stopPropagation(); 
-                      handleAddToCart(menuItems[0]);
+                      handleAddCatererToEvent(caterer);
                     }}>
-                      Add to Cart
+                      Add Caterer
                     </button>
                   </>
                 )}
@@ -94,7 +148,7 @@ function CustomerMenu() {
         {selectedCaterer && (
           <div className="sectionOne">
             <div className="caterer-card">
-              <h2>{selectedCaterer.name}</h2>
+              <h3>{selectedCaterer.name}</h3>
               <p>Location: {selectedCaterer.location}</p>
               <p>Categories: {selectedCaterer.categories.join(', ')}</p>
               <p>Cuisines: {selectedCaterer.cuisines.join(', ')}</p>
@@ -106,19 +160,19 @@ function CustomerMenu() {
         <div className="sectionTwo">
           <h4>Services</h4>
           <div className="services-container">
-          {services.map(service => (
-            <div key={service._id} className="service-card">
-              <h3>{service.serviceName}</h3>
-              <p>Description: {service.description}</p>
-              <p>Price: ${service.price}</p>
-              <p>Duration: {service.duration} hours</p>
-              <p>Category: {service.category}</p>
-              <button className="service-button" onClick={() => handleServiceAction(service)}>
-                  Book Service
+            {services.map(service => (
+              <div key={service._id} className="service-card">
+                <h3>{service.serviceName}</h3>
+                <p>Description: {service.description}</p>
+                <p>Price: ${service.price}</p>
+                <p>Duration: {service.duration} hours</p>
+                <p>Category: {service.category}</p>
+                <button className="service-button" onClick={() => handleAddServiceToCart(service)}>
+                    Book Service
                 </button>
-            </div>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="sectionThree">
           <h4>Menu Items</h4>
@@ -128,12 +182,16 @@ function CustomerMenu() {
                 <h3>{item.name}</h3>
                 <p>Price: ${item.amount}</p>
                 <img src={item.menuImages[0]} alt={item.name} className='menuItemImage' />
-                <button onClick={() => handleAddToCart(item)}>Add to Cart</button>
+                <button onClick={() => handleAddMenuItemToCart(item)}>Add to Cart</button>
               </div>
             ))}
           </div>
         </div>
+        <button className="navigate-button" onClick={handleNavigateToEvent}>
+          Go to Event Page
+        </button>
       </div>
+      
     </div>
   );
 }

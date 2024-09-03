@@ -1,22 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useCaterer } from '../contexts/CatererContext';
-import { useCart } from '../contexts/CartContext';
+import { useCart } from 'react-use-cart';
+
 import '../App.css';
 
 function DisplayCaterers() {
   const { caterers, menuItems, updateMenuItems } = useCaterer();
-  const { addToCart, cartItems } = useCart();
-  const [cartCount, setCartCount] = useState(cartItems.length);
+  const { addItem } = useCart();
+  const [cartCount, setCartCount] = useState();
 
   useEffect(() => {
     updateMenuItems();
   }, []);
 
   const handleAddToCart = (item) => {
-    addToCart(item);
+    console.log('Item to add:', item);
+    if (!item._id || !item.amount) {
+        console.error('Item does not have an id or price:', item);
+        return;
+    }
+    addItem({ id: item._id, price: item.amount, ...item });
     setCartCount(cartCount + 1);
     alert(`${item.name} added to cart!`);
-  };
+};
+
 
   const handleClick = (caterer) => {
     alert(`You clicked on caterer "${caterer.name}"`);

@@ -1,16 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
-import { Row, Col, Form, FormGroup, Input, Button } from 'reactstrap';
-import { useCaterer } from '../../contexts/CatererContext'; // Import useCaterer hook
-import '../customer/Customer.css';
+import { toast, ToastContainer } from 'react-toastify';
+import { Container, Row, Col, Form, FormGroup, Label, Input, Button, Alert } from 'reactstrap';
+import { useCustomer } from '../../contexts/CustomerContext';
+import moment from 'moment';
+import './Customer.css';
 
 const CustomerEvents = () => {
-    const { catererId } = useCaterer(); // Access catererId using the useCaterer hook
-    const [formData, setFormData] = useState({
+    const { incrementEventCount, setEvent } = useCustomer();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const catererId = location.state?.catererId || null;
+
+    const [event, setEventState] = useState({
         name: '',
         startDate: '',
+        startTime: '',
         endDate: '',
+        endTime: '',
         noOfPeople: '',
         address: {
             building: '',
@@ -19,208 +27,233 @@ const CustomerEvents = () => {
             state: '',
             pincode: '',
             country: ''
-        },
-        amount: ''
+        }
     });
-    const navigate = useNavigate();
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        if (catererId) {
+            setError('');
+        }
+    }, [catererId]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        if (name.startsWith('address.')) {
-            const addressField = name.split('.')[1];
-            setFormData({
-                ...formData,
-                address: {
-                    ...formData.address,
-                    [addressField]: value
-                }
-            });
-        } else {
-            setFormData({
-                ...formData,
+        setEventState((prevEvent) => ({
+            ...prevEvent,
+            [name]: value
+        }));
+    };
+
+    const handleAddressChange = (e) => {
+        const { name, value } = e.target;
+        setEventState((prevEvent) => ({
+            ...prevEvent,
+            address: {
+                ...prevEvent.address,
                 [name]: value
-            });
-        }
+            }
+        }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!catererId) {
+            setError('Please select a caterer before creating an event.');
+            return;
+        }
+
+        const formattedEvent = {
+            ...event,
+            startDate: moment(`${event.startDate} ${event.startTime}`).toISOString(),
+            endDate: moment(`${event.endDate} ${event.endTime}`).toISOString()
+        };
+
         try {
-            const dataToSubmit = { ...formData, catererId }; // Include catererId in the form data
-            await axios.post(`http://localhost:3010/api/events/${catererId}`, {
+            const response = await axios.post(`http://localhost:3010/api/events/${catererId}`, formattedEvent, {
                 headers: {
                     Authorization: localStorage.getItem('token')
                 }
-            }, dataToSubmit);
-            navigate('/events/fetch');
-        } catch (error) {
-            console.error('Error creating event:', error);
+            });
+            incrementEventCount();
+            setEvent(response.data);
+            toast.success('Event created successfully! 😺', {
+                onClose: () => navigate('/customers/events/fetch', { state: response.data })
+            });
+        } catch (err) {
+            console.error(err);
+            setError('Error creating event. Please try again.');
         }
     };
 
-
     return (
-        <div className="customer-events-box">
-             
-            <Form onSubmit={handleSubmit} className="customer-events-form">
-                <Row>
-                    <Col xs="12">
+        <Container className="create-event-container">
+            {error && <Alert color="danger">{error}</Alert>}
+            <ToastContainer />
+            <Form onSubmit={handleSubmit}>
+                <Row form>
+                    <Col md={6}>
                         <FormGroup>
+                            <Label for="name">Event Name</Label>
                             <Input
                                 type="text"
                                 name="name"
-                                value={formData.name}
+                                id="name"
+                                value={event.name}
                                 onChange={handleChange}
                                 placeholder="Event Name"
-                                required
-                                className="form-input"
                             />
                         </FormGroup>
                     </Col>
-                </Row>
-                <Row>
-                    <Col xs="6">
+                    <Col md={3}>
                         <FormGroup>
+                            <Label for="startDate">Start Date</Label>
                             <Input
-                                type="datetime-local"
+                                type="date"
                                 name="startDate"
-                                value={formData.startDate}
+                                id="startDate"
+                                value={event.startDate}
                                 onChange={handleChange}
-                                required
-                                className="form-input"
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for="startTime">Start Time</Label>
+                            <Input
+                                type="time"
+                                name="startTime"
+                                id="startTime"
+                                value={event.startTime}
+                                onChange={handleChange}
                             />
                         </FormGroup>
                     </Col>
-                    <Col xs="6">
+                    <Col md={3}>
                         <FormGroup>
+                            <Label for="endDate">End Date</Label>
                             <Input
-                                type="datetime-local"
+                                type="date"
                                 name="endDate"
-                                value={formData.endDate}
+                                id="endDate"
+                                value={event.endDate}
                                 onChange={handleChange}
-                                required
-                                className="form-input"
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for="endTime">End Time</Label>
+                            <Input
+                                type="time"
+                                name="endTime"
+                                id="endTime"
+                                value={event.endTime}
+                                onChange={handleChange}
                             />
                         </FormGroup>
                     </Col>
                 </Row>
-                <Row>
-                    <Col xs="12">
+                <Row form>
+                    <Col md={6}>
                         <FormGroup>
+                            <Label for="noOfPeople">Number of People</Label>
                             <Input
                                 type="number"
                                 name="noOfPeople"
-                                value={formData.noOfPeople}
+                                id="noOfPeople"
+                                value={event.noOfPeople}
                                 onChange={handleChange}
                                 placeholder="Number of People"
-                                required
-                                className="form-input"
                             />
                         </FormGroup>
                     </Col>
                 </Row>
-                <Row>
-                    <Col xs="12">
+                <Row form>
+                    <Col md={12}>
                         <FormGroup>
+                            <Label for="building">Building</Label>
                             <Input
                                 type="text"
-                                name="address.building"
-                                value={formData.address.building}
-                                onChange={handleChange}
+                                name="building"
+                                id="building"
+                                value={event.address.building}
+                                onChange={handleAddressChange}
                                 placeholder="Building"
-                                required
-                                className="form-input"
                             />
                         </FormGroup>
                     </Col>
-                    <Col xs="12">
+                </Row>
+                <Row form>
+                    <Col md={6}>
                         <FormGroup>
+                            <Label for="locality">Locality</Label>
                             <Input
                                 type="text"
-                                name="address.locality"
-                                value={formData.address.locality}
-                                onChange={handleChange}
+                                name="locality"
+                                id="locality"
+                                value={event.address.locality}
+                                onChange={handleAddressChange}
                                 placeholder="Locality"
-                                required
-                                className="form-input"
                             />
                         </FormGroup>
                     </Col>
-                </Row>
-                <Row>
-                    <Col xs="6">
+                    <Col md={6}>
                         <FormGroup>
+                            <Label for="city">City</Label>
                             <Input
                                 type="text"
-                                name="address.city"
-                                value={formData.address.city}
-                                onChange={handleChange}
+                                name="city"
+                                id="city"
+                                value={event.address.city}
+                                onChange={handleAddressChange}
                                 placeholder="City"
-                                required
-                                className="form-input"
                             />
                         </FormGroup>
                     </Col>
-                    <Col xs="6">
+                </Row>
+                <Row form>
+                    <Col md={6}>
                         <FormGroup>
+                            <Label for="state">State</Label>
                             <Input
                                 type="text"
-                                name="address.state"
-                                value={formData.address.state}
-                                onChange={handleChange}
+                                name="state"
+                                id="state"
+                                value={event.address.state}
+                                onChange={handleAddressChange}
                                 placeholder="State"
-                                required
-                                className="form-input"
                             />
                         </FormGroup>
                     </Col>
-                </Row>
-                <Row>
-                    <Col xs="6">
+                    <Col md={6}>
                         <FormGroup>
+                            <Label for="pincode">Pincode</Label>
                             <Input
                                 type="text"
-                                name="address.pincode"
-                                value={formData.address.pincode}
-                                onChange={handleChange}
+                                name="pincode"
+                                id="pincode"
+                                value={event.address.pincode}
+                                onChange={handleAddressChange}
                                 placeholder="Pincode"
-                                required
-                                className="form-input"
                             />
                         </FormGroup>
                     </Col>
-                    <Col xs="6">
+                </Row>
+                <Row form>
+                    <Col md={6}>
                         <FormGroup>
+                            <Label for="country">Country</Label>
                             <Input
                                 type="text"
-                                name="address.country"
-                                value={formData.address.country}
-                                onChange={handleChange}
+                                name="country"
+                                id="country"
+                                value={event.address.country}
+                                onChange={handleAddressChange}
                                 placeholder="Country"
-                                required
-                                className="form-input"
                             />
                         </FormGroup>
                     </Col>
                 </Row>
-                <Row>
-                    <Col xs="12">
-                        <FormGroup>
-                            <Input
-                                type="number"
-                                name="amount"
-                                value={formData.amount}
-                                onChange={handleChange}
-                                placeholder="Amount"
-                                required
-                                className="form-input"
-                            />
-                        </FormGroup>
-                    </Col>
-                </Row>
-                <Button type="submit" className="submit-button">Create Event</Button>
+                <Button type="submit" color="primary">Create Event</Button>
             </Form>
-        </div>
+        </Container>
     );
 };
 

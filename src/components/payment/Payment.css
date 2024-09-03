@@ -1,0 +1,72 @@
+/* Payment.css */
+.payment-table-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.payment-table-container h2, .payment-table-container h3 {
+  text-align: center;
+  color: #333;
+}
+
+.payment-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.payment-table th, .payment-table td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+
+.payment-table th {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.payment-table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.payment-table tr:hover {
+  background-color: #ddd;
+}
+
+.payment-summary {
+  margin-top: 20px;
+  font-size: 18px;
+}
+
+.payment-summary p {
+  margin: 5px 0;
+  color: #555;
+}
+
+.payment-button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background-color: #4CAF50;
+  color: white;
+  font-size: 16px;
+  text-align: center;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.payment-button:hover {
+  background-color: #45a049;
+}
+
+.payment-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
